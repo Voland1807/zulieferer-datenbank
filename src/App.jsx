@@ -97,4 +97,28 @@ export default function App() {
         <button onClick={exportToPDF}>PDF exportieren</button>
       </div>
 
-      <table style={{ width: "100%", borderCollapse: "co
+      <table style={{ width: "100%", borderCollapse: "collapse" }}>
+        <thead>
+          <tr>
+            <th style={{ borderBottom: "1px solid #ccc", textAlign: "left", padding: "0.5rem" }}>Modell</th>
+            <th style={{ borderBottom: "1px solid #ccc", textAlign: "left", padding: "0.5rem" }}>Variante</th>
+            <th style={{ borderBottom: "1px solid #ccc", textAlign: "left", padding: "0.5rem" }}>Baujahr</th>
+            <th style={{ borderBottom: "1px solid #ccc", textAlign: "left", padding: "0.5rem" }}>Komponente</th>
+            <th style={{ borderBottom: "1px solid #ccc", textAlign: "left", padding: "0.5rem" }}>Zulieferer</th>
+          </tr>
+        </thead>
+        <tbody>
+          {filtered.map((row, i) => (
+            <tr key={i}>
+              <td style={{ borderBottom: "1px solid #eee", padding: "0.5rem" }}>{row["Modell"]}</td>
+              <td style={{ borderBottom: "1px solid #eee", padding: "0.5rem" }}>{row["Variante"]}</td>
+              <td style={{ borderBottom: "1px solid #eee", padding: "0.5rem" }}>{row["Baujahr"]}</td>
+              <td style={{ borderBottom: "1px solid #eee", padding: "0.5rem" }}>{row["Komponente"]}</td>
+              <td style={{ borderBottom: "1px solid #eee", padding: "0.5rem" }}>{row["Zulieferer"]}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
