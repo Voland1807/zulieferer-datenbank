@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react";
 import Papa from "papaparse";
+import * as XLSX from "xlsx";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 export default function App() {
   const [data, setData] = useState([]);
@@ -32,6 +35,28 @@ export default function App() {
   const getUniqueValues = (key, withinModel = false) => {
     const scopedData = withinModel && model ? data.filter(row => row["Modell"] === model) : data;
     return Array.from(new Set(scopedData.map(d => d[key]).filter(Boolean))).sort();
+  };
+
+  const exportToExcel = () => {
+    const worksheet = XLSX.utils.json_to_sheet(filtered);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Zulieferer");
+    XLSX.writeFile(workbook, "zulieferer_export.xlsx");
+  };
+
+  const exportToPDF = () => {
+    const doc = new jsPDF();
+    autoTable(doc, {
+      head: [["Modell", "Variante", "Baujahr", "Komponente", "Zulieferer"]],
+      body: filtered.map((row) => [
+        row["Modell"],
+        row["Variante"],
+        row["Baujahr"],
+        row["Komponente"],
+        row["Zulieferer"]
+      ]),
+    });
+    doc.save("zulieferer_export.pdf");
   };
 
   return (
@@ -67,30 +92,9 @@ export default function App() {
             <option key={s} value={s}>{s}</option>
           ))}
         </select>
+
+        <button onClick={exportToExcel}>Excel exportieren</button>
+        <button onClick={exportToPDF}>PDF exportieren</button>
       </div>
 
-      <table style={{ width: "100%", borderCollapse: "collapse" }}>
-        <thead>
-          <tr>
-            <th style={{ borderBottom: "1px solid #ccc", textAlign: "left", padding: "0.5rem" }}>Modell</th>
-            <th style={{ borderBottom: "1px solid #ccc", textAlign: "left", padding: "0.5rem" }}>Variante</th>
-            <th style={{ borderBottom: "1px solid #ccc", textAlign: "left", padding: "0.5rem" }}>Baujahr</th>
-            <th style={{ borderBottom: "1px solid #ccc", textAlign: "left", padding: "0.5rem" }}>Komponente</th>
-            <th style={{ borderBottom: "1px solid #ccc", textAlign: "left", padding: "0.5rem" }}>Zulieferer</th>
-          </tr>
-        </thead>
-        <tbody>
-          {filtered.map((row, i) => (
-            <tr key={i}>
-              <td style={{ borderBottom: "1px solid #eee", padding: "0.5rem" }}>{row["Modell"]}</td>
-              <td style={{ borderBottom: "1px solid #eee", padding: "0.5rem" }}>{row["Variante"]}</td>
-              <td style={{ borderBottom: "1px solid #eee", padding: "0.5rem" }}>{row["Baujahr"]}</td>
-              <td style={{ borderBottom: "1px solid #eee", padding: "0.5rem" }}>{row["Komponente"]}</td>
-              <td style={{ borderBottom: "1px solid #eee", padding: "0.5rem" }}>{row["Zulieferer"]}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
-}
+      <table style={{ width: "100%", borderCollapse: "co
