@@ -1,1 +1,0 @@
-// React-Komponente wird hier eingefügt
