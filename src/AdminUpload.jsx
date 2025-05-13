@@ -9,7 +9,7 @@ const AdminUpload = () => {
   const [newData, setNewData] = useState([]);
   const [mergedData, setMergedData] = useState([]);
 
-  const correctPassword = "admin123"; // 🔑 Hier ändern
+  const correctPassword = "admin123"; // 🔑 Passwort anpassen nach Wunsch
 
   const handleAuth = () => {
     if (passwordInput === correctPassword) {
@@ -36,8 +36,6 @@ const AdminUpload = () => {
     }
 
     const combined = [...baseData, ...newData];
-
-    // Duplikate entfernen nach Modell + Komponente + Zulieferer
     const unique = Array.from(
       new Map(
         combined.map((item) => [
@@ -75,28 +73,50 @@ const AdminUpload = () => {
     <div style={{ padding: "2rem" }}>
       <h2>🛠 Admin Upload & Merge</h2>
 
+      {/* Bestehende Master-CSV */}
       <div style={{ marginBottom: "1rem" }}>
         <h4>1️⃣ Bestehende Datei hochladen (aktuelle Master-Datei)</h4>
-        <input
-          type="file"
-          accept=".csv"
-          onChange={(e) => parseFile(e.target.files[0], setBaseData)}
-        />
+        {baseData.length === 0 ? (
+          <input
+            type="file"
+            accept=".csv"
+            onChange={(e) => parseFile(e.target.files[0], setBaseData)}
+          />
+        ) : (
+          <div>
+            ✅ Datei geladen ({baseData.length} Zeilen)
+            <button onClick={() => setBaseData([])} style={{ marginLeft: "1rem" }}>
+              ❌ Entfernen
+            </button>
+          </div>
+        )}
       </div>
 
+      {/* Neue Modell-Datei */}
       <div style={{ marginBottom: "1rem" }}>
         <h4>2️⃣ Neue Modell-Datei hochladen</h4>
-        <input
-          type="file"
-          accept=".csv"
-          onChange={(e) => parseFile(e.target.files[0], setNewData)}
-        />
+        {newData.length === 0 ? (
+          <input
+            type="file"
+            accept=".csv"
+            onChange={(e) => parseFile(e.target.files[0], setNewData)}
+          />
+        ) : (
+          <div>
+            ✅ Datei geladen ({newData.length} Zeilen)
+            <button onClick={() => setNewData([])} style={{ marginLeft: "1rem" }}>
+              ❌ Entfernen
+            </button>
+          </div>
+        )}
       </div>
 
+      {/* Merge-Button */}
       <div style={{ marginBottom: "1rem" }}>
         <button onClick={mergeData}>🔄 Zusammenführen</button>
       </div>
 
+      {/* Download */}
       {mergedData.length > 0 && (
         <div>
           <h4>✅ Zusammengeführt: {mergedData.length} Einträge</h4>
@@ -108,4 +128,3 @@ const AdminUpload = () => {
 };
 
 export default AdminUpload;
-
