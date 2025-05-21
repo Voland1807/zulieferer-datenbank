@@ -5,11 +5,10 @@ import { saveAs } from "file-saver";
 const AdminUpload = () => {
   const [authorized, setAuthorized] = useState(false);
   const [passwordInput, setPasswordInput] = useState("");
-  const [baseData, setBaseData] = useState([]);
-  const [newData, setNewData] = useState([]);
+  const [modelFiles, setModelFiles] = useState([]);
   const [mergedData, setMergedData] = useState([]);
 
-  const correctPassword = "admin123"; // 🔑 Passwort anpassen nach Wunsch
+  const correctPassword = "admin123"; // 🔑 Anpassen nach Bedarf
 
   const handleAuth = () => {
     if (passwordInput === correctPassword) {
@@ -19,28 +18,34 @@ const AdminUpload = () => {
     }
   };
 
-  const parseFile = (file, callback) => {
+  const parseAndAddFile = (file) => {
     Papa.parse(file, {
       header: true,
       skipEmptyLines: true,
       complete: (results) => {
-        callback(results.data);
+        setModelFiles((prev) => [...prev, { name: file.name, data: results.data }]);
       },
     });
   };
 
-  const mergeData = () => {
-    if (!baseData.length || !newData.length) {
-      alert("Bitte beide Dateien hochladen");
+  const removeModelFile = (name) => {
+    setModelFiles((prev) => prev.filter((entry) => entry.name !== name));
+  };
+
+  const mergeAllModels = () => {
+    if (modelFiles.length === 0) {
+      alert("Bitte mindestens eine Modell-Datei hochladen");
       return;
     }
 
-    const combined = [...baseData, ...newData];
+    const allData = modelFiles.flatMap((entry) => entry.data);
+
+    // Duplikate entfernen (Modell + Komponente + Zulieferer)
     const unique = Array.from(
       new Map(
-        combined.map((item) => [
-          `${item.Modell}|${item.Komponente}|${item.Zulieferer}`,
-          item,
+        allData.map((row) => [
+          `${row.Modell}|${row.Komponente}|${row.Zulieferer}`,
+          row,
         ])
       ).values()
     );
@@ -71,56 +76,47 @@ const AdminUpload = () => {
 
   return (
     <div style={{ padding: "2rem" }}>
-      <h2>🛠 Admin Upload & Merge</h2>
+      <h2>🧩 Admin Upload: Modellweise</h2>
 
-      {/* Bestehende Master-CSV */}
-      <div style={{ marginBottom: "1rem" }}>
-        <h4>1️⃣ Bestehende Datei hochladen (aktuelle Master-Datei)</h4>
-        {baseData.length === 0 ? (
-          <input
-            type="file"
-            accept=".csv"
-            onChange={(e) => parseFile(e.target.files[0], setBaseData)}
-          />
-        ) : (
-          <div>
-            ✅ Datei geladen ({baseData.length} Zeilen)
-            <button onClick={() => setBaseData([])} style={{ marginLeft: "1rem" }}>
-              ❌ Entfernen
-            </button>
-          </div>
-        )}
+      {/* Modell-Datei hochladen */}
+      <div style={{ marginBottom: "1.5rem" }}>
+        <h4>📂 Modell-CSV hochladen</h4>
+        <input
+          type="file"
+          accept=".csv"
+          onChange={(e) => parseAndAddFile(e.target.files[0])}
+        />
       </div>
 
-      {/* Neue Modell-Datei */}
-      <div style={{ marginBottom: "1rem" }}>
-        <h4>2️⃣ Neue Modell-Datei hochladen</h4>
-        {newData.length === 0 ? (
-          <input
-            type="file"
-            accept=".csv"
-            onChange={(e) => parseFile(e.target.files[0], setNewData)}
-          />
-        ) : (
-          <div>
-            ✅ Datei geladen ({newData.length} Zeilen)
-            <button onClick={() => setNewData([])} style={{ marginLeft: "1rem" }}>
-              ❌ Entfernen
-            </button>
-          </div>
-        )}
+      {/* Liste geladener Modelle */}
+      {modelFiles.length > 0 && (
+        <div style={{ marginBottom: "1.5rem" }}>
+          <h4>✅ Geladene Dateien:</h4>
+          <ul>
+            {modelFiles.map((file, i) => (
+              <li key={i}>
+                {file.name} ({file.data.length} Zeilen)
+                <button
+                  onClick={() => removeModelFile(file.name)}
+                  style={{ marginLeft: "1rem" }}
+                >
+                  ❌ Entfernen
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {/* Merge + Download */}
+      <div style={{ marginBottom: "1.5rem" }}>
+        <button onClick={mergeAllModels}>🔄 Alle zusammenführen</button>
       </div>
 
-      {/* Merge-Button */}
-      <div style={{ marginBottom: "1rem" }}>
-        <button onClick={mergeData}>🔄 Zusammenführen</button>
-      </div>
-
-      {/* Download */}
       {mergedData.length > 0 && (
         <div>
-          <h4>✅ Zusammengeführt: {mergedData.length} Einträge</h4>
-          <button onClick={downloadMerged}>⬇️ Merged CSV herunterladen</button>
+          <h4>📊 Ergebnis: {mergedData.length} Einträge</h4>
+          <button onClick={downloadMerged}>⬇️ Download: Master-Datei</button>
         </div>
       )}
     </div>
